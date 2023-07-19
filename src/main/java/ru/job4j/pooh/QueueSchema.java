@@ -35,7 +35,7 @@ public class QueueSchema implements Schema {
                     }
                 }
                 condition.off();
-            } while(condition.check());
+            } while (condition.check());
             try {
                 condition.await();
             } catch (InterruptedException e) {

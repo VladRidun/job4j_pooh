@@ -24,8 +24,7 @@ public class PoohServer {
             while (!server.isClosed()) {
                 Socket socket = server.accept();
                 pool.execute(() -> {
-                    try (OutputStream out = socket.getOutputStream();
-                         var input = new BufferedReader(new InputStreamReader(socket.getInputStream()))) {
+                    try (OutputStream out = socket.getOutputStream(); var input = new BufferedReader(new InputStreamReader(socket.getInputStream()))) {
                         while (true) {
                             var details = input.readLine().split(";");
                             if (details.length != 3) {
@@ -34,24 +33,7 @@ public class PoohServer {
                             var action = details[0];
                             var name = details[1];
                             var text = details[2];
-                            if (action.equals("intro")) {
-                                if (name.equals("queue")) {
-                                    queueSchema.addReceiver(
-                                            new SocketReceiver(text, new PrintWriter(out))
-                                    );
-                                }
-                                if (name.equals("topic")) {
-                                    topicSchema.addReceiver(
-                                            new SocketReceiver(text, new PrintWriter(out))
-                                    );
-                                }
-                            }
-                            if (action.equals("queue")) {
-                                queueSchema.publish(new Message(name, text));
-                            }
-                            if (action.equals("topic")) {
-                                topicSchema.publish(new Message(name, text));
-                            }
+                            actionsDo(action, name, text, out);
                         }
                     } catch (Exception e) {
                         e.printStackTrace();
@@ -60,6 +42,23 @@ public class PoohServer {
             }
         } catch (Exception e) {
             e.printStackTrace();
+        }
+    }
+
+    void actionsDo(String action, String name, String text, OutputStream out) {
+        if (action.equals("intro")) {
+            if (name.equals("queue")) {
+                queueSchema.addReceiver(new SocketReceiver(text, new PrintWriter(out)));
+            }
+            if (name.equals("topic")) {
+                topicSchema.addReceiver(new SocketReceiver(text, new PrintWriter(out)));
+            }
+        }
+        if (action.equals("queue")) {
+            queueSchema.publish(new Message(name, text));
+        }
+        if (action.equals("topic")) {
+            topicSchema.publish(new Message(name, text));
         }
     }
 
